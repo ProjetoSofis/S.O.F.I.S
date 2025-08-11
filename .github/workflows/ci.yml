@@ -1,0 +1,43 @@
+name: Angular CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Checkout the code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2) Configuration of Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # 3) Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 4) Lint the code
+      - name: Run lint
+        run: npm run lint --if-present
+
+      # 5) Unitary tests with Angular
+      - name: Run tests
+        run: npm run test -- --watch=false --browsers=ChromeHeadless
+
+      # 6) Build
+      - name: Build Angular app
+        if: github.event_name != 'pull_request' || github.base_ref == 'main' || github.base_ref == 'develop'
+        run: npm run build -- --configuration production
